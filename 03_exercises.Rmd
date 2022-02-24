@@ -106,19 +106,36 @@ We could compare the price per pound of the grocery items at whole foods and mul
   4. Subset the data to tomatoes. Reorder the tomato varieties from smallest to largest first harvest date. Create a barplot of total harvest in pounds for each variety, in the new order.CHALLENGE: add the date near the end of the bar. (This is probably not a super useful graph because it's difficult to read. This is more an exercise in using some of the functions you just learned.)
 
 ```{r}
-
+garden_harvest %>%
+  filter(vegetable == "tomatoes") %>%
+  group_by(variety) %>%
+  mutate(total_wt_lbs = sum(weight)*0.00220462) %>%
+  slice_min(date) %>%
+  arrange(date) %>%
+  ggplot(aes(x = fct_reorder(variety, date), y = total_wt_lbs)) +
+  geom_col() + 
+  labs(title = "Total weight in pounds for each tomato variety ordered by first harvest date", x = "Variety", y = "Total Weight in Pounds") +
+  theme(axis.text = element_text(size = 6))
 ```
 
   5. In the `garden_harvest` data, create two new variables: one that makes the varieties lowercase and another that finds the length of the variety name. Arrange the data by vegetable and length of variety name (smallest to largest), with one row for each vegetable variety. HINT: use `str_to_lower()`, `str_length()`, and `distinct()`.
   
 ```{r}
-
+garden_harvest %>%
+  mutate(variety_lower = str_to_lower(variety)) %>%
+  mutate(variety_length = str_length(variety)) %>%
+  select(vegetable, variety, variety_lower, variety_length) %>%
+  distinct() %>%
+  arrange(vegetable, variety_length)
 ```
 
   6. In the `garden_harvest` data, find all distinct vegetable varieties that have "er" or "ar" in their name. HINT: `str_detect()` with an "or" statement (use the | for "or") and `distinct()`.
 
 ```{r}
-
+garden_harvest %>%
+  select(vegetable, variety) %>%
+  distinct() %>%
+  filter(str_detect(variety, "er")|str_detect(variety, "ar"))
 ```
 
 
@@ -158,46 +175,96 @@ It's natural to expect that bikes are rented more at some times of day, some day
   7. A density plot, which is a smoothed out histogram, of the events versus `sdate`. Use `geom_density()`.
   
 ```{r}
-
+Trips %>%
+  ggplot() +
+  geom_density(aes(x = sdate)) +
+  labs(title = "Bike Rentals by Date", x = "Date", y = "Density")
 ```
+  
+More bikes are rented during the months of October and Novemeber as compared to December and January.
   
   8. A density plot of the events versus time of day.  You can use `mutate()` with `lubridate`'s  `hour()` and `minute()` functions to extract the hour of the day and minute within the hour from `sdate`. Hint: A minute is 1/60 of an hour, so create a variable where 3:30 is 3.5 and 3:45 is 3.75.
   
 ```{r}
-
+Trips %>%
+  mutate(time = hour(sdate) + minute(sdate)/60) %>%
+  ggplot() + 
+  geom_density(aes(x = time)) + 
+  labs(title = "Bike Rentals by Time", y = "Density", x = "Time")
 ```
+
+A majority of bikes are rented out between the hours of 8am and 8pm with large spikes at 8am and 6pm and a dip in between these times.
   
   9. A bar graph of the events versus day of the week. Put day on the y-axis.
   
 ```{r}
-
+Trips %>%
+  mutate(weekday = wday(sdate)) %>%
+  ggplot() + 
+  geom_bar(aes(y = weekday)) + 
+  labs(title = "Bike Rentals by Day of the Week", y = "Day of the Week (1 = Sunday)")
 ```
+  
+The least bikes are rented on Saturday and Sunday, while the days during the week have the most rentals, with Friday having the most, closely followed by Monday and Thursday.
   
   10. Facet your graph from exercise 8. by day of the week. Is there a pattern?
   
 ```{r}
-
+Trips %>%
+  mutate(time = hour(sdate) + minute(sdate)/60) %>%
+  mutate(weekday = wday(sdate)) %>%
+  ggplot() + 
+  geom_density(aes(x = time)) +
+  labs(title = "Bike Rental Times for Days of the Week (1 = Sunday)", y = "Density", x = "Time") +
+  facet_wrap(vars(weekday))
 ```
+  
+For the weekdays we see the spikes in rentals at times when people are going and leaving work, however for the weekend, we see a general trend of rentals during the middle of the day. 
   
 The variable `client` describes whether the renter is a regular user (level `Registered`) or has not joined the bike-rental organization (`Causal`). The next set of exercises investigate whether these two different categories of users show different rental behavior and how `client` interacts with the patterns you found in the previous exercises. 
 
   11. Change the graph from exercise 10 to set the `fill` aesthetic for `geom_density()` to the `client` variable. You should also set `alpha = .5` for transparency and `color=NA` to suppress the outline of the density function.
   
 ```{r}
-
+Trips %>%
+  mutate(time = hour(sdate) + minute(sdate)/60) %>%
+  mutate(weekday = wday(sdate)) %>%
+  ggplot() + 
+  geom_density(aes(x = time, fill = client), alpha = .5, color = NA) +
+  labs(title = "Bike Rental Times for Days of the Week by Client (1 = Sunday)", y = "Density", x = "Time") +
+  facet_wrap(vars(weekday))
 ```
+
+We see that it is the registered users who are using the bike rentals for commuting to and from work, while the casual users are using the bike rentals mostly during the middle of the day, regardless of the day of the week.
 
   12. Change the previous graph by adding the argument `position = position_stack()` to `geom_density()`. In your opinion, is this better or worse in terms of telling a story? What are the advantages/disadvantages of each?
   
 ```{r}
-
+Trips %>%
+  mutate(time = hour(sdate) + minute(sdate)/60) %>%
+  mutate(weekday = wday(sdate)) %>%
+  ggplot() + 
+  geom_density(aes(x = time, fill = client), alpha = .5, color = NA, position = position_stack()) +
+  labs(title = "Bike Rental Times for Days of the Week by Client (1 = Sunday)", y = "Density", x = "Time") +
+  facet_wrap(vars(weekday))
 ```
+  
+In my opinion, this graph is worse at telling the story. It is much harder to see that it is really just the registered clients commuting to and from work with the bikes while the casual users are using it throughout the day. The advantage to the previous graph is we can individually see the distribution of each client while the advantage of this graph is to see the total distribution as well, but at the sacrifice of more information regarding the two categories of client.
   
   13. In this graph, go back to using the regular density plot (without `position = position_stack()`). Add a new variable to the dataset called `weekend` which will be "weekend" if the day is Saturday or Sunday and  "weekday" otherwise (HINT: use the `ifelse()` function and the `wday()` function from `lubridate`). Then, update the graph from the previous problem by faceting on the new `weekend` variable. 
   
 ```{r}
-
+Trips %>%
+  mutate(time = hour(sdate) + minute(sdate)/60) %>%
+  mutate(weekday = wday(sdate)) %>%
+  mutate(weekend = weekday == 1 | weekday == 7) %>%
+  ggplot() + 
+  geom_density(aes(x = time, fill = client), alpha = .5, color = NA) +
+  labs(title = "Bike Rental Times for Weekend vs Weekday by Client (TRUE = Weekend)", y = "Density", x = "Time") +
+  facet_wrap(vars(weekend))
 ```
+  
+Here we can see a similar conclusion to our previous graphs, but in a more compact and clear way. The registered riders are using the bikes during the week for commuting to work, but also using the bikes during the weekend during the day, while the casual riders are using the bikes during both the week and weekend for use during the day.
   
   14. Change the graph from the previous problem to facet on `client` and fill with `weekday`. What information does this graph tell you that the previous didn't? Is one graph better than the other?
   
