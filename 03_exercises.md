@@ -404,7 +404,7 @@ breed_rank_all %>%
   left_join(breed_traits_total, by = c("Breed")) %>%
   arrange(desc(total_rating)) %>%
   filter(total_rating > 48) %>%
-  ggplot(aes(y = fct_reorder(Breed, rank), x = Year, color = rank)) + 
+  ggplot(aes(y = Breed, x = Year, color = rank)) + 
   geom_point() +
   geom_line()
 ```
@@ -414,6 +414,23 @@ breed_rank_all %>%
   19. Create your own! Requirements: use a `join` or `pivot` function (or both, if you'd like), a `str_XXX()` function, and a `fct_XXX()` function to create a graph using any of the dog datasets. One suggestion is to try to improve the graph you created for the Tidy Tuesday assignment. If you want an extra challenge, find a way to use the dog images in the `breed_rank_all` file - check out the `ggimage` library and [this resource](https://wilkelab.org/ggtext/) for putting images as labels.
   
 
+```r
+breed_rank_all %>%
+  select(-links, -Image) %>%
+  pivot_longer(cols = -Breed, names_to = "year", values_to = "rank") %>%
+  separate(year, into = "Year") %>%
+  left_join(breed_traits_total, by = c("Breed")) %>%
+  arrange(desc(total_rating)) %>%
+  filter(total_rating>0) %>%
+  group_by(Breed) %>%
+  mutate(avg_rank = mean(rank)) %>%
+  ggplot(aes(x = total_rating, y = avg_rank)) +
+  geom_point() +
+  labs(title = "Dog Breeds by Total Rating and Average Ranking", y = "Average Ranking", x = "Total Rating") +
+  geom_text(aes(label = ifelse((avg_rank<50&total_rating>50), as.character(str_to_title(Breed)),'')), hjust=-.1, vjust=-.5, size = 2)
+```
+
+![](03_exercises_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
   
 ## GitHub link
 
