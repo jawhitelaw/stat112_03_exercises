@@ -340,7 +340,8 @@ breed_rank_all %>%
   filter(total_rating > 48) %>%
   ggplot(aes(y = Breed, x = Year, color = rank)) + 
   geom_point() +
-  geom_line()
+  geom_line() + 
+  labs(title = "Top Breeds by Total Rating colored by Rank")
 ```
   
   19. Create your own! Requirements: use a `join` or `pivot` function (or both, if you'd like), a `str_XXX()` function, and a `fct_XXX()` function to create a graph using any of the dog datasets. One suggestion is to try to improve the graph you created for the Tidy Tuesday assignment. If you want an extra challenge, find a way to use the dog images in the `breed_rank_all` file - check out the `ggimage` library and [this resource](https://wilkelab.org/ggtext/) for putting images as labels.

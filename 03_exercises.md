@@ -406,7 +406,8 @@ breed_rank_all %>%
   filter(total_rating > 48) %>%
   ggplot(aes(y = Breed, x = Year, color = rank)) + 
   geom_point() +
-  geom_line()
+  geom_line() + 
+  labs(title = "Top Breeds by Total Rating colored by Rank")
 ```
 
 ![](03_exercises_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
